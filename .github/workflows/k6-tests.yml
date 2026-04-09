@@ -3,38 +3,27 @@ name: K6 Performance Testing
 on: [push]
 
 jobs:
-  performance-job:
+  k6_test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Build and Run Site
-        run: |
-          docker build -t lab3-site .
-          docker run -d -p 8080:80 lab3-site
-          
-          # Чекаємо, поки сайт почне відповідати (максимум 30 секунд)
-          for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null; then
-              echo "Site is up!"
-              break
-            fi
-            echo "Waiting for site..."
-            sleep 1
-          done
+      - name: Start Local Server
+        # Запускаємо сервер у фоні, щоб він не блокував наступні кроки
+        run: python3 -m http.server 8080 & 
 
-      - name: Run Smoke Test
-        uses: grafana/k6-action@v0.3.1
-        with:
-          filename: performance-tests/smoke-test.js
-
-      - name: Run Load Test
-        uses: grafana/k6-action@v0.3.1
+      - name: Run k6 Load Test
+        uses: grafana/k6-action@v0.3.0
         with:
           filename: performance-tests/load-test.js
 
-      - name: Run Stress Test
-        uses: grafana/k6-action@v0.3.1
+      - name: Run k6 Smoke Test
+        uses: grafana/k6-action@v0.3.0
+        with:
+          filename: performance-tests/smoke-test.js
+
+      - name: Run k6 Stress Test
+        uses: grafana/k6-action@v0.3.0
         with:
           filename: performance-tests/stress-test.js
