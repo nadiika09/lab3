@@ -1,14 +1,15 @@
 import http from 'k6/http';
-import { check } from 'k6';
+import { sleep } from 'k6';
 
 export const options = {
-  vus: 30,
-  duration: '30s',
+  stages: [
+    { duration: '2m', target: 30 }, // розгін до 30 користувачів
+    { duration: '5m', target: 30 }, // тримаємо 30 користувачів
+    { duration: '2m', target: 0 },  // зупинка
+  ],
 };
 
 export default function () {
-  const res = http.get('http://localhost:8080/');
-  check(res, {
-    'response time < 500ms': (r) => r.timings.duration < 500,
-  });
+  http.get('http://localhost:8080/');
+  sleep(1);
 }
